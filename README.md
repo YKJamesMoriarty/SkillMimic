@@ -177,11 +177,13 @@ A subset is at `skillmimic/data/motions/BallPlay-M/`, full dataset coming soon.
 ## References 🔗
 If you find this repository useful for your research, please cite the following work.
 ```
-@article{wang2024skillmimic,
-author    = {Wang, Yinhuai and Zhao, Qihan and Yu, Runyi and Zeng, Ailing and Lin, Jing and Luo, Zhengyi and Tsui, Hok Wai and Yu, Jiwen and Li, Xiu and Chen, Qifeng and Zhang, Jian and Zhang, Lei and Tan Ping},
-  title     = {SkillMimic: Learning Reusable Basketball Skills from Demonstrations},
-  journal   = {arXiv preprint arXiv:2408.15270},
-  year      = {2024},
+@InProceedings{Wang_2025_CVPR,
+    author    = {Wang, Yinhuai and Zhao, Qihan and Yu, Runyi and Tsui, Hok Wai and Zeng, Ailing and Lin, Jing and Luo, Zhengyi and Yu, Jiwen and Li, Xiu and Chen, Qifeng and Zhang, Jian and Zhang, Lei and Tan, Ping},
+    title     = {SkillMimic: Learning Basketball Interaction Skills from Demonstrations},
+    booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
+    month     = {June},
+    year      = {2025},
+    pages     = {17540-17549}
 }
 ```
 
