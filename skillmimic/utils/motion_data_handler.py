@@ -180,43 +180,48 @@ class MotionDataHandler:
         # 补全初始帧速度为零，确保与原始数据帧数一致 [帧数, 3]
         loaded_dict['root_rot_vel'] = torch.cat((torch.zeros((1, loaded_dict['root_rot_vel'].shape[-1])).to(self.device), loaded_dict['root_rot_vel']), dim=0)
         ### dof_pos关节旋转角度，body_pos是身体部位的绝对位置
-        # 提取自由度位置数据 [帧数, 87]，87=29个关节*3个自由度（G1机器人是29dof）
-        loaded_dict['dof_pos'] = loaded_dict['hoi_data'][:, 9:9+87].clone()
-        # 计算自由度位置速度 [帧数, 87]
+        # 提取自由度位置数据 [帧数, 156]，156=52个关节*3个自由度
+        loaded_dict['dof_pos'] = loaded_dict['hoi_data'][:, 9:9+156].clone()
+        # 计算自由度位置速度 [帧数, 156]
         loaded_dict['dof_pos_vel'] = self._compute_velocity(loaded_dict['dof_pos'], fps_data)
 
         data_length = loaded_dict['hoi_data'].shape[0]  # 获取数据长度（帧数）
-        # 提取身体位置数据并重塑为 [帧数, N, 3]，N为身体部位数量（根据实际数据结构调整）
-        # 假设body_pos数据紧跟在dof_pos后面
-        body_pos_start = 9 + 87
-        # 计算body_pos的总维度，假设每个运动数据帧的总长度是固定的
-        total_frame_dim = loaded_dict['hoi_data'].shape[1]
-        body_pos_total_dim = total_frame_dim - body_pos_start
-        num_body_parts = body_pos_total_dim // 3
-        loaded_dict['body_pos'] = loaded_dict['hoi_data'][:, body_pos_start:].clone().view(data_length, num_body_parts, 3)
+        # 提取身体位置数据并重塑为 [帧数, 53, 3]，53个身体部位
+        loaded_dict['body_pos'] = loaded_dict['hoi_data'][:, 165: 165+53*3].clone().view(data_length, 53, 3)
         # 提取关键身体部位位置数据 [帧数, N*3]，N为关键身体部位数量
         loaded_dict['key_body_pos'] = loaded_dict['body_pos'][:, self._key_body_ids, :].view(data_length, -1).clone()
         # 计算关键身体部位位置速度 [帧数, N*3]
         loaded_dict['key_body_pos_vel'] = self._compute_velocity(loaded_dict['key_body_pos'], fps_data)
 
-        # 初始化物体相关数据为零，用于兼容现有代码结构
-        loaded_dict['obj_pos'] = torch.zeros((data_length, 3), device=self.device, dtype=torch.float)
-        loaded_dict['obj_rot'] = torch.zeros((data_length, 4), device=self.device, dtype=torch.float)
-        loaded_dict['obj_pos_vel'] = torch.zeros((data_length, 3), device=self.device, dtype=torch.float)
-        loaded_dict['obj_rot_vel'] = torch.zeros((data_length, 3), device=self.device, dtype=torch.float)
-        loaded_dict['contact'] = torch.zeros((data_length, 1), device=self.device, dtype=torch.float)
+        # 提取物体位置数据 [帧数, 3]
+        loaded_dict['obj_pos'] = loaded_dict['hoi_data'][:, 318+6:321+6].clone()
+        # 计算物体位置速度 [帧数, 3]
+        loaded_dict['obj_pos_vel'] = self._compute_velocity(loaded_dict['obj_pos'], fps_data)
 
-        # 重新组合hoi_data，包含所需的所有数据（不包含物体相关数据）
+        # 提取物体旋转数据 [帧数, 3]
+        loaded_dict['obj_rot'] = -loaded_dict['hoi_data'][:, 321+6:324+6].clone()
+        # 计算物体旋转速度 [帧数, 3]
+        loaded_dict['obj_rot_vel'] = self._compute_velocity(loaded_dict['obj_rot'], fps_data)
+        # 初始化速度处理，使用第二帧速度作为初始速度
+        if self.init_vel:
+            loaded_dict['obj_pos_vel'][0] = loaded_dict['obj_pos_vel'][1]  # 使用第二帧速度作为初始速度
+        # 转换物体旋转向量为四元数 [帧数, 4]
+        loaded_dict['obj_rot'] = torch_utils.exp_map_to_quat(-loaded_dict['hoi_data'][:, 327:330]).clone()
+
+        # 提取接触数据 [帧数, 1]
+        loaded_dict['contact'] = torch.round(loaded_dict['hoi_data'][:, 330+6:331+6].clone())
+
+        # 重新组合hoi_data，包含所需的所有数据
         loaded_dict['hoi_data'] = torch.cat((
             loaded_dict['root_pos'],  # 根节点位置 [帧数, 3]
             loaded_dict['root_rot_3d'],  # 根节点3D旋转 [帧数, 3]
-            loaded_dict['dof_pos'],  # 自由度位置 [帧数, 87]
-            loaded_dict['dof_pos_vel'],  # 自由度位置速度 [帧数, 87]
-            loaded_dict['obj_pos'],  # 物体位置 [帧数, 3]（零填充）
-            loaded_dict['obj_rot'],  # 物体旋转（四元数）[帧数, 4]（零填充）
-            loaded_dict['obj_pos_vel'],  # 物体位置速度 [帧数, 3]（零填充）
+            loaded_dict['dof_pos'],  # 自由度位置 [帧数, 156]
+            loaded_dict['dof_pos_vel'],  # 自由度位置速度 [帧数, 156]
+            loaded_dict['obj_pos'],  # 物体位置 [帧数, 3]
+            loaded_dict['obj_rot'],  # 物体旋转（四元数）[帧数, 4]
+            loaded_dict['obj_pos_vel'],  # 物体位置速度 [帧数, 3]
             loaded_dict['key_body_pos'],  # 关键身体部位位置 [帧数, N*3]
-            loaded_dict['contact']  # 接触数据 [帧数, 1]（零填充）
+            loaded_dict['contact']  # 接触数据 [帧数, 1]
         ), dim=-1)  # 按最后一个维度拼接
         
         return loaded_dict  # 返回处理后的序列数据
