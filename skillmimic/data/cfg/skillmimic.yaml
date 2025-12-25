@@ -1,73 +1,75 @@
-# if given, will override the device setting in gym. 
+# 设备配置覆盖选项，如果提供，将覆盖gym中的设备设置
+# 1.环境配置部分
 env: 
-  numEnvs: 2048
-  envSpacing: 2 #0
-  episodeLength: 0
-  isFlagrun: False
-  enableDebugVis: False
-  playdataset: False
-  projtype: "None"
-  saveImages: "" #False
-  initVel: False
-  
-  pdControl: True
-  powerScale: 1.0
-  controlFrequencyInv: 1 # 60 Hz #ZC
-  stateInit: "Random" #2
-  hybridInitProb: 0.5
-  dataFPS: 60 #120 #ZC
-  dataFramesScale: 1. #.5 # 120 -> 60 fps
-  ballSize: 1.
-  ballRestitution: 0.81
-  ballDensity: 1000.
+  numEnvs: 2048               # 并行环境数量，用于高效的批量训练
+  envSpacing: 2               # 环境之间的间距（米），避免不同环境之间的物理交互
+  episodeLength: 0            # 每个episode的长度（帧数），0表示使用默认值
+  isFlagrun: False            # 是否启用标志跑模式（特殊的跑步任务）
+  enableDebugVis: False       # 是否启用调试可视化
+  playdataset: False          # 是否播放数据集（用于数据可视化或回放）
+  projtype: "None"            # 投影类型，用于相机或传感器
+  saveImages: ""              # 保存图像的路径，空字符串表示不保存
+  initVel: False              # 是否使用初始速度初始化智能体
+#2.控制与初始化设置
+  pdControl: True             # 是否使用PD（比例微分）控制器进行关节控制
+  powerScale: 1.0             # 控制功率缩放因子，调整关节电机的最大输出功率
+  controlFrequencyInv: 1      # 控制频率的倒数，1表示60 Hz的控制频率
+  stateInit: "Random"         # 状态初始化方式，"Random"表示随机初始化
+  hybridInitProb: 0.5         # 混合初始化概率，用于控制随机初始化和固定初始化的比例
+  dataFPS: 60                 # 数据帧率（帧/秒），匹配运动捕捉数据的采样率
+  dataFramesScale: 1.         # 数据帧缩放因子，用于调整数据帧率
+  ballSize: 1.                # 球的大小（半径，米）
+  ballRestitution: 0.81       # 球的弹性系数（0-1，0表示完全非弹性，1表示完全弹性）
+  ballDensity: 1000.          # 球的密度（千克/立方米）
 
-  localRootObs: False
-  keyBodies: ["Head", "L_Knee", "R_Knee", "L_Elbow", "R_Elbow", "L_Ankle", "R_Ankle", "L_Index3", "L_Middle3", "L_Pinky3", "L_Ring3","L_Thumb3","R_Index3", "R_Middle3", "R_Pinky3", "R_Ring3","R_Thumb3"] # #["L_Hip", "L_Knee", "left_foot", "L_Toe", "R_Hip", "R_Knee", "right_foot", "R_Toe", "Torso", "Spine", "Chest", "Neck", "Head", "L_Thorax", "L_Shoulder", "L_Elbow", "left_hand", "R_Thorax", "R_Shoulder", "R_Elbow", "right_hand"] #["right_hand", "left_hand", "right_foot", "left_foot"]
-  keyBodiesWrist: ["Head", "L_Knee", "R_Knee", "L_Elbow", "R_Elbow", "L_Ankle", "R_Ankle"] #, "L_Wrist", "R_Wrist"
-  contactBodies: ["L_Index3", "L_Middle3", "L_Pinky3", "L_Ring3","L_Thumb3","R_Index3", "R_Middle3", "R_Pinky3", "R_Ring3","R_Thumb3"] #["right_foot", "left_foot"]
-  terminationHeight: 0.25
-  enableEarlyTermination: True #False #True
+  localRootObs: False         # 是否使用局部坐标系观察根节点状态
+  keyBodies: ["Head", "L_Knee", "R_Knee", "L_Elbow", "R_Elbow", "L_Ankle", "R_Ankle", "L_Index3", "L_Middle3", "L_Pinky3", "L_Ring3","L_Thumb3","R_Index3", "R_Middle3", "R_Pinky3", "R_Ring3","R_Thumb3"] # 关键身体部位列表，用于跟踪和计算奖励
+  keyBodiesWrist: ["Head", "L_Knee", "R_Knee", "L_Elbow", "R_Elbow", "L_Ankle", "R_Ankle"] # 包含手腕的关键身体部位列表
+  contactBodies: ["L_Index3", "L_Middle3", "L_Pinky3", "L_Ring3","L_Thumb3","R_Index3", "R_Middle3", "R_Pinky3", "R_Ring3","R_Thumb3"] # 接触检测身体部位列表，用于检测与环境的接触
+  terminationHeight: 0.25     # 终止高度阈值，当根节点低于此高度时结束episode
+  enableEarlyTermination: True # 是否启用早期终止条件
 
-  asset:
-    assetRoot: "skillmimic/data/assets" #projectname
-    assetFileName: "mjcf/mocap_humanoid.xml" #"mjcf/mocap_humanoid.xml"
+  asset:                      # 资产配置
+    assetRoot: "skillmimic/data/assets" # 资产文件的根目录
+    assetFileName: "mjcf/mocap_humanoid.xml" # 人形模型文件路径
+#3.地面
+  plane:                      # 地面平面配置
+    staticFriction: 1.0       # 静摩擦系数
+    dynamicFriction: 1.0      # 动摩擦系数
+    restitution: 0.8          # 弹性系数
+#4.奖励函数权重配置
+  rewardWeights:              # 奖励函数权重配置
+    p: 20.                    # 位置误差权重
+    r: 20.                    # 旋转误差权重
+    pv: 0.                    # 位置速度误差权重
+    rv: 0.                    # 旋转速度误差权重
 
-  plane:
-    staticFriction: 1.0
-    dynamicFriction: 1.0
-    restitution: 0.8 #1.6 #0.99 #0. #1.6
-  
-  rewardWeights:
-    p: 20.
-    r: 20.
-    pv: 0.
-    rv: 0.
+    op: 1.                    # 观察位置误差权重
+    or: 0.                    # 观察旋转误差权重
+    opv: 0.                   # 观察位置速度误差权重
+    orv: 0.                   # 观察旋转速度误差权重
 
-    op: 1.
-    or: 0.
-    opv: 0.
-    orv: 0.
+    ig: 20.                   # 姿态保持权重
 
-    ig: 20.
+    cg1: 5.                   # 接触奖励权重1
+    cg2: 5.                   # 接触奖励权重2
 
-    cg1: 5.
-    cg2: 5.
+  enableTaskObs: False        # 是否启用任务观察
 
-  enableTaskObs: False #ZC0
-
+# 5.物理模拟配置部分
 sim:
-  substeps: 2 #ZC
-  physx:
-    num_threads: 4
-    solver_type: 1  # 0: pgs, 1: tgs
-    num_position_iterations: 4
-    num_velocity_iterations: 0
-    contact_offset: 0.02
-    rest_offset: 0.0
-    bounce_threshold_velocity: 0.2
-    max_depenetration_velocity: 10.0
-    default_buffer_size_multiplier: 10.0
+  substeps: 2                 # 每个仿真步骤的子步数，用于提高物理模拟精度
+  physx:                      # PhysX物理引擎配置
+    num_threads: 4            # 物理模拟使用的线程数
+    solver_type: 1            # 求解器类型：0表示PGS（投影高斯-赛德尔），1表示TGS（泰勒高斯-赛德尔）
+    num_position_iterations: 4 # 位置迭代次数，影响接触稳定性
+    num_velocity_iterations: 0 # 速度迭代次数
+    contact_offset: 0.02      # 接触偏移量，用于检测即将发生的接触
+    rest_offset: 0.0          # 静止偏移量，定义物体静止接触时的穿透量
+    bounce_threshold_velocity: 0.2 # 弹跳阈值速度，低于此速度的碰撞不会产生弹跳
+    max_depenetration_velocity: 10.0 # 最大去穿透速度，限制物体分离的最大速度
+    default_buffer_size_multiplier: 10.0 # 默认缓冲区大小乘数
 
-  flex:
-    num_inner_iterations: 10
-    warm_start: 0.25
+  flex:                       # Flex物理引擎配置（如果使用）
+    num_inner_iterations: 10  # 内部迭代次数
+    warm_start: 0.25          # 热启动系数，用于加速迭代收敛

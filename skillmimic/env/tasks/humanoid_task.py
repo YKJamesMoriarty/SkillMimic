@@ -360,7 +360,7 @@ class HumanoidWholeBody(BaseTask):
             self.gym.set_dof_actuation_force_tensor(self.sim, force_tensor)
 
         return
-    
+    # 将actor的输出映射为机器人52个关节的目标角度
     def _action_to_pd_targets(self, action):
         pd_tar = self._pd_action_offset + self._pd_action_scale * action
         return pd_tar
