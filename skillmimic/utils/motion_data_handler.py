@@ -510,17 +510,17 @@ class MotionDataHandler:
         """
         reward_weights = self.reward_weights_default  # 获取默认奖励权重
         return {
-            "p": reward_weights["p"],
-            "r": reward_weights["r"],
-            "op": reward_weights["op"] * 0.,
-            "ig": reward_weights["ig"] * 0.,
-            "cg1": reward_weights["cg1"] * 0.,
-            "cg2": reward_weights["cg2"] * 0.,
-            "pv": reward_weights["pv"],
-            "rv": reward_weights["rv"],
-            "or": reward_weights["or"],
-            "opv": reward_weights["opv"],
-            "orv": reward_weights["orv"],
+            "p": reward_weights["p"],  # 位置奖励权重
+            "r": reward_weights["r"],  # 旋转奖励权重
+            "op": 0.,  # 物体位置奖励权重设为0
+            "ig": reward_weights["ig"] * 0.,  # 惯性奖励权重设为0（作者原本就这么写的）
+            "cg1": 0.,  # 接触奖励权重1设为0
+            "cg2": 0.,  # 接触奖励权重2设为0
+            "pv": reward_weights["pv"],  # 位置速度奖励权重
+            "rv": reward_weights["rv"],  # 旋转速度奖励权重
+            "or": 0.,  # 物体旋转奖励权重
+            "opv": 0.,  # 物体位置速度奖励权重
+            "orv": 0.,  # 物体旋转速度奖励权重
         }
 
     # 获取一般情况奖励权重的方法
@@ -535,15 +535,15 @@ class MotionDataHandler:
         """
         reward_weights = self.reward_weights_default  # 获取默认奖励权重
         return {
-            "p": reward_weights["p"],
-            "r": reward_weights["r"],
-            "op": reward_weights["op"],
-            "ig": reward_weights["ig"],
-            "cg1": reward_weights["cg1"],
-            "cg2": reward_weights["cg2"],
-            "pv": reward_weights["pv"],
-            "rv": reward_weights["rv"],
-            "or": reward_weights["or"],
-            "opv": reward_weights["opv"],
-            "orv": reward_weights["orv"],
+            "p": reward_weights["p"],  # 位置奖励权重
+            "r": reward_weights["r"],  # 旋转奖励权重
+            "op": 0.,  # 物体位置奖励权重
+            "ig": reward_weights["ig"],  # 惯性奖励权重
+            "cg1": 0.,  # 接触奖励权重1
+            "cg2": 0.,  # 接触奖励权重2
+            "pv": reward_weights["pv"],  # 位置速度奖励权重
+            "rv": reward_weights["rv"],  # 旋转速度奖励权重
+            "or": 0.,  # 物体旋转奖励权重
+            "opv": 0.,  # 物体位置速度奖励权重
+            "orv": 0.,  # 物体旋转速度奖励权重
         }
